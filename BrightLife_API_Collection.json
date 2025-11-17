@@ -1,0 +1,262 @@
+{
+  "info": {
+    "name": "BrightLife Django Backend API",
+    "description": "Complete API collection for testing BrightLife backend endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login - Get JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/token/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "token", ""]
+            },
+            "description": "Obtain access and refresh JWT tokens"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "token", "refresh", ""]
+            },
+            "description": "Refresh access token using refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{access_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/token/verify/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "token", "verify", ""]
+            },
+            "description": "Verify if token is still valid"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@brightlife.com\",\n  \"password\": \"SecurePass123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""]
+            },
+            "description": "Register a new user (public endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "me", ""]
+            },
+            "description": "Get authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "List All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", ""]
+            },
+            "description": "List all active users (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1", ""]
+            },
+            "description": "Get specific user details"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1", ""]
+            },
+            "description": "Partial update user profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate User (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1", ""]
+            },
+            "description": "Deactivate user (sets is_active=False)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "API Documentation",
+      "item": [
+        {
+          "name": "OpenAPI Schema",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", ""]
+            },
+            "description": "Get OpenAPI schema (YAML)"
+          },
+          "response": []
+        },
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/schema/swagger-ui/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", "swagger-ui", ""]
+            },
+            "description": "Interactive API documentation (browser only)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

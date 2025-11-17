@@ -1,0 +1,43 @@
+name: Deploy to Heroku
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  deploy:
+    name: Deploy to Heroku
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          
+      - name: Run Database Migrations
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+          heroku run python manage.py migrate --app $HEROKU_APP_NAME
+
+      - name: Deployment Success
+        if: success()
+        run: |
+          echo "✅ Deployed to Heroku successfully!"
+          echo "App URL: https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com"

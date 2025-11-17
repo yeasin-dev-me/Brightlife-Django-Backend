@@ -1,6 +1,15 @@
 # BrightLife Django Backend
 
-Django REST Framework backend API for the BrightLife application.
+![Django CI](https://github.com/ya-shuvo30/Brightlife-Django-Backend/workflows/Django%20CI%2FCD%20Pipeline/badge.svg)
+![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)
+![Django Version](https://img.shields.io/badge/django-5.2-green.svg)
+
+Django REST Framework backend API for the BrightLife health membership platform.
+
+## 🔗 Related Repositories
+
+- **Frontend**: [brightlife-typescript-app](https://github.com/ya-shuvo30/brightlife-typescript-app)
+- **Backend**: [Brightlife-Django-Backend](https://github.com/ya-shuvo30/Brightlife-Django-Backend) (this repo)
 
 ## Tech Stack
 
@@ -65,6 +74,42 @@ Django REST Framework backend API for the BrightLife application.
    ```
 
 API will be available at `http://localhost:8000/api/v1/`
+
+## 🚀 Deployment
+
+This project includes automated CI/CD pipelines for multiple deployment platforms.
+
+### Quick Deploy
+
+**Railway** (Recommended):
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway up
+```
+
+**Heroku**:
+```bash
+heroku create brightlife-backend
+git push heroku main
+```
+
+**Docker**:
+```bash
+docker-compose up --build
+```
+
+📖 **Full deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+### CI/CD Workflows
+
+- **Django CI/CD**: Automated testing, linting, and security scans
+- **Railway Deploy**: Auto-deploy to Railway on push to `main`
+- **Heroku Deploy**: Manual deployment workflow
+- **Docker Build**: Container image builds
+
+All workflows are in `.github/workflows/` directory.
 
 ## Development
 
