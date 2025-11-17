@@ -38,7 +38,7 @@ class MembershipApplicationSerializer(serializers.ModelSerializer):
     Main serializer for membership application
     Handles nested nominees and file uploads
     """
-    nominees = NomineeSerializer(many=True)
+    nominees = NomineeSerializer(many=True, required=False)
     age = serializers.IntegerField(read_only=True)
     proposal_number = serializers.CharField(read_only=True)
 
@@ -54,8 +54,20 @@ class MembershipApplicationSerializer(serializers.ModelSerializer):
         2. Validate date of birth (must be 18+ years old)
         3. Validate file sizes
         """
-        # Validate nominees share percentage
+        # Parse nominees if it's a JSON string
+        import json
         nominees_data = self.initial_data.get('nominees', [])
+        if isinstance(nominees_data, str):
+            try:
+                nominees_data = json.loads(nominees_data)
+            except json.JSONDecodeError:
+                nominees_data = []
+        
+        # Store parsed nominees back to data
+        if nominees_data:
+            data['nominees'] = nominees_data
+        
+        # Validate nominees share percentage (only if nominees exist)
         if nominees_data:
             total_share = sum(Decimal(str(n.get('share_percentage', 0))) for n in nominees_data)
             if total_share != 100:
@@ -76,7 +88,13 @@ class MembershipApplicationSerializer(serializers.ModelSerializer):
                 })
 
         # Validate terms acceptance
-        if not data.get('terms_accepted'):
+        terms = data.get('terms_accepted')
+        # Convert string "true"/"false" to boolean
+        if isinstance(terms, str):
+            terms = terms.lower() in ('true', '1', 'yes')
+            data['terms_accepted'] = terms
+        
+        if not terms:
             raise serializers.ValidationError({
                 'terms_accepted': 'You must accept the terms and conditions'
             })

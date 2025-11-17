@@ -86,12 +86,16 @@ class MembershipApplication(models.Model):
     photo = models.ImageField(
         upload_to='photos/%Y/%m/',
         validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])],
-        help_text='Passport-size photo (JPG/PNG, max 5MB)'
+        help_text='Passport-size photo (JPG/PNG, max 5MB)',
+        blank=True,
+        null=True
     )
     age_proof = models.FileField(
         upload_to='documents/age_proof/%Y/%m/',
         validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
-        help_text='Birth certificate or NID (PDF/Image, max 5MB)'
+        help_text='Birth certificate or NID (PDF/Image, max 5MB)',
+        blank=True,
+        null=True
     )
     driving_license = models.FileField(
         upload_to='documents/licenses/%Y/%m/',
@@ -102,21 +106,25 @@ class MembershipApplication(models.Model):
     )
 
     # Step 2: Address Information
-    present_address = models.TextField(help_text='Full present address')
-    permanent_address = models.TextField(help_text='Full permanent address')
+    present_address = models.TextField(help_text='Full present address', blank=True, default='')
+    permanent_address = models.TextField(help_text='Full permanent address', blank=True, default='')
 
     # Step 4: Physical Measurements
     weight = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         validators=[MinValueValidator(10), MaxValueValidator(500)],
-        help_text='Weight in kg'
+        help_text='Weight in kg',
+        blank=True,
+        null=True
     )
     height = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         validators=[MinValueValidator(50), MaxValueValidator(300)],
-        help_text='Height in cm'
+        help_text='Height in cm',
+        blank=True,
+        null=True
     )
 
     BLOOD_GROUP_CHOICES = [
@@ -129,7 +137,7 @@ class MembershipApplication(models.Model):
         ('O+', 'O Positive'),
         ('O-', 'O Negative'),
     ]
-    blood_group = models.CharField(max_length=3, choices=BLOOD_GROUP_CHOICES)
+    blood_group = models.CharField(max_length=3, choices=BLOOD_GROUP_CHOICES, blank=True, default='')
 
     # Medical history
     surgery_history = models.TextField(
