@@ -1,53 +1,45 @@
-# BrightLife Django Backend - AI Agent Instructions
-
-## Project Overview
-Django REST Framework backend API for the BrightLife health membership platform. Works with a React TypeScript frontend, uses PostgreSQL database, and follows RESTful API design patterns.
-
-## Architecture & Stack
-
-- **Framework**: Django 5.2.8 with Django REST Framework (DRF)
-- **Database**: PostgreSQL with Django ORM
-- **API Style**: RESTful endpoints returning JSON
-- **Frontend Integration**: CORS-enabled API consumed by React SPA (sibling repository)
-- **Authentication**: JWT tokens via `djangorestframework-simplejwt`
+# Development Guidelines
 
 ## Project Structure
 
 ```
-brightlife-django-backend/
-├── manage.py
-├── requirements.txt
-├── config/                 # Project settings & URL root
-│   ├── settings.py        # Main settings (monolithic - no split)
-│   ├── urls.py            # Root URL configuration
-│   ├── wsgi.py            # WSGI entry point
-│   └── asgi.py            # ASGI entry point (async)
-├── apps/                   # Django applications
-│   ├── users/             # User management & auth (custom User model)
-│   │   ├── models.py      # Custom User model (AUTH_USER_MODEL)
-│   │   ├── serializers.py # User serializers (Create/Update/Read)
-│   │   ├── views.py       # UserViewSet with 'me' endpoint
-│   │   └── urls.py        # User API routes
-│   └── core/              # Shared utilities & base models
-└── .github/               # GitHub workflow configurations (to be added)
+apps/
+├── users/          # User authentication & management
+├── membership/     # Membership applications
+└── core/           # Shared utilities
 ```
 
-## Development Conventions
+## Key Conventions
 
-### Models & Database
-- **Custom User Model**: `apps.users.User` (configured as `AUTH_USER_MODEL = 'users.User'`)
-- **Always define `__str__` methods** for readable admin/shell output
-- **Soft deletes**: `is_active` field used for user deactivation (see `UserViewSet.destroy`)
-- **Migrations**: Run `python manage.py makemigrations` after model changes, review before committing
-- **PostgreSQL**: Uses `psycopg2-binary` adapter, configured via `.env` variables
+- Custom User model: `apps.users.User`
+- API follows REST conventions
+- JWT authentication for protected endpoints
+- PostgreSQL database via environment config
+- Separate serializers for read/write operations
 
-### API Design (DRF)
+## Quick Commands
 
-#### Serializers Pattern
-Separate serializers for different operations:
-```python
-# apps/users/serializers.py
-UserSerializer          # Read operations (detailed data)
+```bash
+# Run migrations
+python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Run tests
+python manage.py test
+
+# Start server
+python manage.py runserver
+```
+
+## Environment Setup
+
+Copy `.env.example` to `.env` and configure:
+- Database credentials
+- Secret key
+- CORS origins
+- Email settings (if needed)
 UserCreateSerializer    # Registration (write, validation)
 UserUpdateSerializer    # Profile updates (partial fields)
 ```

@@ -45,8 +45,8 @@ urlpatterns = [
     
     # API v1 endpoints
     path('api/v1/', include('apps.users.urls')),
-    # Membership app endpoints
-    path('api/membership/', include('apps.membership.urls')),
+    path('api/v1/membership/', include('apps.membership.urls')),
+    path('api/v1/payment/', include('apps.payment.urls')),
 ]
 
 # Serve media files in development

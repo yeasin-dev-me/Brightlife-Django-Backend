@@ -1,23 +1,30 @@
-# BrightLife Django Backend
+# BrightLife Backend API
 
-![Django CI](https://github.com/ya-shuvo30/Brightlife-Django-Backend/workflows/Django%20CI%2FCD%20Pipeline/badge.svg)
-![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)
-![Django Version](https://img.shields.io/badge/django-5.2-green.svg)
+REST API for the BrightLife health membership management system built with Django REST Framework.
 
-Django REST Framework backend API for the BrightLife health membership platform.
+## Overview
 
-## 🔗 Related Repositories
+This backend serves the BrightLife membership platform, handling user registration, membership applications, payment proof submissions, document uploads, and administrative workflows.
 
-- **Frontend**: [brightlife-typescript-app](https://github.com/ya-shuvo30/brightlife-typescript-app)
-- **Backend**: [Brightlife-Django-Backend](https://github.com/ya-shuvo30/Brightlife-Django-Backend) (this repo)
+**Frontend Repository**: [brightlife-typescript-app](https://github.com/ya-shuvo30/brightlife-typescript-app)
+
+## Features
+
+- ✅ **User Management**: JWT-based authentication with custom user model
+- ✅ **Membership Applications**: Complete membership workflow with nominees and medical records
+- ✅ **Payment Proof System**: Upload and verify payment screenshots with auto-generated receipts
+- ✅ **Document Uploads**: Photo, age proof, and nominee ID document handling
+- ✅ **Admin Interface**: Color-coded badges, bulk actions, and verification workflows
+- ✅ **API Documentation**: Auto-generated Swagger and ReDoc
 
 ## Tech Stack
 
-- **Django 5.x** - Web framework
-- **Django REST Framework** - REST API toolkit
-- **PostgreSQL** - Database
-- **JWT** - Authentication
-- **React** - Frontend (separate repository)
+- Django 5.0.14 with Django REST Framework 3.16.1
+- PostgreSQL 15 (production) / SQLite (development)
+- JWT authentication (Simple JWT)
+- Docker & Docker Compose support
+- WhiteNoise for static files
+- CORS configured for frontend integration
 
 ## Quick Start
 
@@ -142,17 +149,51 @@ flake8
 
 ### Project Structure
 
-```
+```plaintext
 brightlife-django-backend/
 ├── config/              # Project configuration
+│   ├── settings.py     # Django settings
+│   ├── urls.py         # Main URL routing
+│   └── wsgi.py         # WSGI application
 ├── apps/               # Django applications
-│   ├── users/         # User management
-│   ├── api/           # API versioning
+│   ├── users/         # User authentication & management
+│   ├── membership/    # Membership applications with nominees & medical records
+│   ├── payment/       # Payment proof submissions & verification
 │   └── core/          # Shared utilities
-├── static/            # Static files
-├── media/             # User uploads
+├── media/             # User uploads (photos, documents, payment screenshots)
+├── staticfiles/       # Collected static files for production
+├── docker-compose.yml # Docker orchestration
+├── Dockerfile         # Container configuration
+├── requirements.txt   # Python dependencies
 └── manage.py
 ```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/token/` - Obtain JWT token pair (login)
+- `POST /api/auth/token/refresh/` - Refresh access token
+- `POST /api/auth/token/verify/` - Verify token validity
+
+### Users
+- `POST /api/v1/users/` - Register new user
+- `GET /api/v1/users/me/` - Get current user profile
+- `PUT /api/v1/users/me/` - Update current user profile
+
+### Membership Applications
+- `POST /api/v1/membership/applications/` - Submit membership application
+- `GET /api/v1/membership/applications/` - List applications (admin)
+- `GET /api/v1/membership/applications/{id}/` - Get application details
+
+### Payment Proof (NEW)
+- `POST /api/v1/payment/proof/` - Submit payment proof with screenshot
+- `GET /api/v1/payment/proof/{transaction_id}/` - Check payment status
+- **Admin endpoints:**
+  - `GET /api/v1/payment/admin/payment-proofs/` - List all payment proofs
+  - `POST /api/v1/payment/admin/payment-proofs/{id}/verify/` - Verify payment
+  - `POST /api/v1/payment/admin/payment-proofs/{id}/reject/` - Reject payment
+
+**Payment Response includes auto-generated receipt data for frontend modal/print**
 
 ## API Documentation
 

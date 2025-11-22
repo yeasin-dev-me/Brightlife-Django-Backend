@@ -19,24 +19,26 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+PIPFILE.lock
 
 # Virtual Environment
 venv/
 env/
 ENV/
-.venv
+.venv/
 
 # Django
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/static/
+/staticfiles/
 /media/
 
 # Environment Variables
 .env
 .env.local
+.env.*.local
 
 # IDE
 .vscode/
@@ -45,13 +47,35 @@ db.sqlite3-journal
 *.swo
 *~
 .DS_Store
+*.code-workspace
 
 # Testing
 .coverage
 htmlcov/
 .pytest_cache/
 .tox/
+*.cover
+.hypothesis/
 
-# Migrations (uncomment if you want to ignore migrations)
-# */migrations/*.py
-# !*/migrations/__init__.py
+# Development Scripts (DO NOT COMMIT)
+check_*.py
+view_*.py
+test_*.ps1
+*.backup
+
+# Documentation (Keep main docs, remove implementation details)
+INSTALLATION_SUMMARY.md
+MEMBERSHIP_IMPLEMENTATION.md
+TESTING_GUIDE.md
+
+# Postman/API Testing
+*.json
+!package.json
+
+# Setup Scripts
+setup.ps1
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

@@ -1,23 +1,25 @@
-# Membership API - Frontend Integration Guide
+# API Integration Guide
 
-**Backend Base URL**: `http://localhost:8000/api/membership/`  
-**Production**: Update to your deployed backend URL
+## Base Configuration
 
----
+**Development**: `http://localhost:8000/api`  
+**Production**: Update to your deployed URL
 
-## 📡 API Endpoint
+## Authentication
 
-### Submit Membership Application
+JWT-based authentication is required for protected endpoints.
 
-**Endpoint**: `POST /api/membership/applications/`  
-**Authentication**: Not required (public endpoint)  
-**Content-Type**: `multipart/form-data`
+### Login
+```typescript
+POST /api/auth/token/
+Body: { username, password }
+Response: { access, refresh }
+```
 
----
-
-## 📤 Request Format
-
-### TypeScript Interface (matches your MembershipFormData)
+Use the access token in subsequent requests:
+```typescript
+headers: { Authorization: 'Bearer <access_token>' }
+```
 
 ```typescript
 interface MembershipFormData {

@@ -1,17 +1,14 @@
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.db import transaction
-from django.core.mail import send_mail
-from django.conf import settings
 import logging
 
-from .models import MembershipApplication, Nominee, ApplicationStatusHistory
+from .models import MembershipApplication, Nominee, MedicalRecord
 from .serializers import (
     MembershipApplicationSerializer,
     MembershipApplicationListSerializer,
-    ApplicationStatusSerializer
 )
 
 logger = logging.getLogger('membership')
@@ -20,8 +17,9 @@ logger = logging.getLogger('membership')
 class MembershipApplicationViewSet(viewsets.ModelViewSet):
     """
     ViewSet for membership application CRUD operations
+    Handles multipart/form-data with files and nested data
     """
-    queryset = MembershipApplication.objects.prefetch_related('nominees').all()
+    queryset = MembershipApplication.objects.prefetch_related('nominees', 'medical_records_files').all()
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_class(self):
@@ -32,10 +30,10 @@ class MembershipApplicationViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        Public access for create and retrieve
+        Public access for create
         Admin access for list, update, delete
         """
-        if self.action in ['create', 'retrieve']:
+        if self.action in ['create']:
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
 
@@ -43,49 +41,225 @@ class MembershipApplicationViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         """
         Handle new membership application submission
-        Wraps creation in database transaction for data integrity
+        Processes FormData with files and nested nominee data
         """
         try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            # Save application and nominees
-            application = serializer.save()
-
-            # Log successful submission
-            logger.info(
-                f"New membership application submitted: {application.proposal_number} "
-                f"by {application.first_name} {application.last_name}"
-            )
-
-            # Send confirmation email (optional)
-            self.send_confirmation_email(application)
-
-            # Return response with proposal number
-            return Response({
-                'success': True,
-                'message': 'Application submitted successfully',
-                'data': {
-                    'proposal_number': application.proposal_number,
-                    'id': str(application.id),
-                    'status': application.status
+            # Log incoming request data
+            logger.info(f"Received membership application submission")
+            logger.info(f"Request data keys: {list(request.data.keys())}")
+            logger.info(f"Request FILES keys: {list(request.FILES.keys())}")
+            # Parse nominees from FormData array format
+            nominees_data = []
+            i = 0
+            while True:
+                name_key = f'nominees[{i}]name'
+                if name_key not in request.data:
+                    break
+                
+                relation = request.data.get(f'nominees[{i}]relation', '')
+                
+                # Map relation to relationship (normalize)
+                relation_mapping = {
+                    'son': 'child',
+                    'daughter': 'child',
+                    'wife': 'spouse',
+                    'husband': 'spouse',
+                    'father': 'father',
+                    'mother': 'mother',
+                    'brother': 'sibling',
+                    'sister': 'sibling'
                 }
-            }, status=status.HTTP_201_CREATED)
-
+                relationship = relation_mapping.get(relation.lower().strip(), 'child')
+                
+                nominee = {
+                    'name': request.data.get(f'nominees[{i}]name', ''),
+                    'relation': relation,
+                    'relationship': relationship,
+                    'share': int(request.data.get(f'nominees[{i}]share', 0)),
+                    'age': int(request.data.get(f'nominees[{i}]age', 0)),
+                }
+                
+                # Handle nominee photo (only add if file exists)
+                photo_key = f'nominees[{i}]photo'
+                if photo_key in request.FILES:
+                    nominee['photo'] = request.FILES[photo_key]
+                
+                # Handle nominee ID proof (only add if file exists)
+                id_proof_key = f'nomineeIdProof[{i}]'
+                if id_proof_key in request.FILES:
+                    nominee['id_proof'] = request.FILES[id_proof_key]
+                
+                nominees_data.append(nominee)
+                i += 1
+            
+            logger.debug(f"Parsed {len(nominees_data)} nominees")
+            
+            # Prepare data for serializer - filter out empty values
+            data = {}
+            for key, value in request.data.items():
+                # Skip nominee-related keys as they're already parsed
+                if key.startswith('nominees[') or key.startswith('nomineeIdProof['):
+                    continue
+                # Skip empty values
+                if value != '' and value is not None:
+                    data[key] = value
+            
+            # Add parsed nominees
+            if nominees_data:
+                data['nominees'] = nominees_data
+            
+            # Handle medical records (multiple files)
+            medical_records = []
+            for key in request.FILES:
+                if key.startswith('medicalRecords'):
+                    medical_records.append(request.FILES[key])
+            if medical_records:
+                data['medical_records'] = medical_records
+            
+            # Handle age proof as JSON array
+            import json
+            if 'ageProof' in data:
+                if isinstance(data['ageProof'], str):
+                    try:
+                        # Try to parse as JSON first
+                        parsed = json.loads(data['ageProof'])
+                        # Ensure it's a list
+                        data['age_proof'] = parsed if isinstance(parsed, list) else [parsed]
+                    except (json.JSONDecodeError, ValueError):
+                        # If not valid JSON, treat as single string value
+                        data['age_proof'] = [data['ageProof']]
+                elif isinstance(data['ageProof'], list):
+                    data['age_proof'] = data['ageProof']
+                else:
+                    data['age_proof'] = [str(data['ageProof'])]
+                # Remove the old key
+                data.pop('ageProof', None)
+            
+            # Map frontend field names to backend
+            field_mapping = {
+                'proposalNo': 'proposal_no',
+                'foCode': 'fo_code',
+                'foName': 'fo_name',
+                'membershipType': 'membership_type',
+                'nameBangla': 'name_bangla',
+                'nameEnglish': 'name_english',
+                'fatherName': 'father_name',
+                'motherName': 'mother_name',
+                'spouseName': 'spouse_name',
+                'ageProofDoc': 'age_proof_doc',
+                'drivingLicense': 'driving_license',
+                'licenseDoc': 'license_doc',
+                'maritalStatus': 'marital_status',
+                'professionalQualifications': 'professional_qualifications',
+                'organizationDetails': 'organization_details',
+                'dailyWork': 'daily_work',
+                'annualIncome': 'annual_income',
+                'monthlyIncome': 'monthly_income',
+                'incomeSource': 'income_source',
+                'presentAddress': 'present_address',
+                'permanentAddress': 'permanent_address',
+                'bloodGroup': 'blood_group',
+                'surgeryDetails': 'surgery_details',
+                'acceptTerms': 'accept_terms',
+            }
+            
+            for old_key, new_key in field_mapping.items():
+                if old_key in data:
+                    data[new_key] = data.pop(old_key)
+            
+            # Map membership_type from frontend to backend choices
+            if 'membership_type' in data:
+                membership_mapping = {
+                    'silver': 'individual',
+                    'bronze': 'individual',
+                    'gold': 'family',
+                    'executive': 'corporate'
+                }
+                data['membership_type'] = membership_mapping.get(
+                    data['membership_type'].lower(), 
+                    data['membership_type']
+                )
+            
+            # Map marital_status from frontend to backend choices
+            if 'marital_status' in data:
+                marital_mapping = {
+                    'unmarried': 'single',
+                    'married': 'married',
+                    'divorced': 'divorced',
+                    'others': 'widowed'
+                }
+                data['marital_status'] = marital_mapping.get(
+                    data['marital_status'].lower(),
+                    data['marital_status']
+                )
+            
+            # Convert annual income to monthly if provided
+            if 'annual_income' in data:
+                try:
+                    annual = float(data.pop('annual_income'))
+                    # Round to 2 decimal places to avoid precision issues
+                    data['monthly_income'] = round(annual / 12, 2)
+                except (ValueError, TypeError):
+                    pass
+            
+            # Handle file uploads
+            for file_field in ['photo', 'age_proof_doc', 'license_doc']:
+                if file_field in request.FILES:
+                    data[file_field] = request.FILES[file_field]
+            
+            # Serialize and validate
+            serializer = self.get_serializer(data=data)
+            
+            # Add debug logging
+            logger.debug(f"Serializer input data keys: {list(data.keys())}")
+            if 'nominees' in data:
+                logger.debug(f"Nominees data: {data['nominees']}")
+            if 'age_proof' in data:
+                logger.debug(f"Age proof data: {data['age_proof']}")
+            
+            if serializer.is_valid():
+                application = serializer.save()
+                
+                logger.info(
+                    f"New membership application submitted: {application.proposal_no} "
+                    f"by {application.name_english}"
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': 'Membership application submitted successfully',
+                    'data': {
+                        'id': str(application.id),
+                        'proposal_no': application.proposal_no,
+                        'status': application.status,
+                        'submitted_at': application.created_at.isoformat()
+                    }
+                }, status=status.HTTP_201_CREATED)
+            
+            # Log validation errors in detail
+            logger.error(f"Validation errors: {serializer.errors}")
+            for field, errors in serializer.errors.items():
+                logger.error(f"Field '{field}': {errors}")
+            
+            return Response({
+                'success': False,
+                'message': 'Validation failed',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
             logger.error(f"Error submitting membership application: {str(e)}")
             return Response({
                 'success': False,
-                'message': 'Failed to submit application',
-                'errors': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+                'message': f'Server error: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, *args, **kwargs):
-        """Get application details by ID or proposal number"""
+        """Get application details"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-
+            
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -96,145 +270,13 @@ class MembershipApplicationViewSet(viewsets.ModelViewSet):
                 'message': 'Application not found',
                 'errors': str(e)
             }, status=status.HTTP_404_NOT_FOUND)
-
-    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
-    def update_status(self, request, pk=None):
-        """
-        Admin endpoint to update application status
-        POST /api/membership/applications/{id}/update_status/
-        Body: { "status": "approved", "notes": "Optional notes" }
-        """
-        application = self.get_object()
-        new_status = request.data.get('status')
-        notes = request.data.get('notes', '')
-
-        if new_status not in dict(MembershipApplication.STATUS_CHOICES):
-            return Response({
-                'success': False,
-                'message': 'Invalid status'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Record status change in history
-        ApplicationStatusHistory.objects.create(
-            application=application,
-            previous_status=application.status,
-            new_status=new_status,
-            changed_by=request.user.username if request.user.is_authenticated else 'system',
-            notes=notes
-        )
-
-        # Update status
-        application.status = new_status
-        application.save()
-
-        # Send notification email
-        self.send_status_update_email(application, new_status)
-
-        logger.info(f"Application {application.proposal_number} status updated to {new_status}")
-
+    
+    def list(self, request, *args, **kwargs):
+        """List all applications"""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        
         return Response({
             'success': True,
-            'message': 'Status updated successfully',
-            'data': {
-                'proposal_number': application.proposal_number,
-                'status': application.status
-            }
+            'data': serializer.data
         })
-
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
-    def statistics(self, request):
-        """
-        Admin endpoint for application statistics
-        GET /api/membership/applications/statistics/
-        """
-        from django.db.models import Count
-        from django.db import models as dj_models
-
-        stats = MembershipApplication.objects.aggregate(
-            total=Count('id'),
-            pending=Count('id', filter=dj_models.Q(status='pending')),
-            approved=Count('id', filter=dj_models.Q(status='approved')),
-            rejected=Count('id', filter=dj_models.Q(status='rejected')),
-            under_review=Count('id', filter=dj_models.Q(status='under_review'))
-        )
-
-        # Membership type breakdown
-        type_breakdown = MembershipApplication.objects.values('membership_type').annotate(
-            count=Count('id')
-        )
-
-        return Response({
-            'success': True,
-            'data': {
-                'overview': stats,
-                'by_type': list(type_breakdown)
-            }
-        })
-
-    def send_confirmation_email(self, application):
-        """Send confirmation email to applicant"""
-        try:
-            subject = f'Membership Application Received - {application.proposal_number}'
-            message = f"""
-Dear {application.first_name} {application.last_name},
-
-Thank you for submitting your membership application to BrightLife Bangladesh.
-
-Your application details:
-- Proposal Number: {application.proposal_number}
-- Membership Type: {application.get_membership_type_display()}
-- Submission Date: {application.created_at.strftime('%d %B %Y, %I:%M %p')}
-
-Your application is currently under review. We will notify you once the review is complete.
-
-For any queries, please contact us at support@brightlife-bd.com
-
-Best regards,
-BrightLife Bangladesh Team
-            """
-
-            send_mail(
-                subject,
-                message,
-                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@brightlife-bd.com'),
-                [application.email],
-                fail_silently=True
-            )
-            logger.info(f"Confirmation email sent to {application.email}")
-        except Exception as e:
-            logger.error(f"Failed to send confirmation email: {str(e)}")
-
-    def send_status_update_email(self, application, new_status):
-        """Send email when application status changes"""
-        try:
-            status_messages = {
-                'approved': 'We are pleased to inform you that your membership application has been approved!',
-                'rejected': 'We regret to inform you that your membership application has been rejected.',
-                'under_review': 'Your membership application is currently under review.'
-            }
-
-            subject = f'Application Status Update - {application.proposal_number}'
-            message = f"""
-Dear {application.first_name} {application.last_name},
-
-{status_messages.get(new_status, 'Your application status has been updated.')}
-
-Application Details:
-- Proposal Number: {application.proposal_number}
-- Current Status: {application.get_status_display()}
-
-For any queries, please contact us at support@brightlife-bd.com
-
-Best regards,
-BrightLife Bangladesh Team
-            """
-
-            send_mail(
-                subject,
-                message,
-                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@brightlife-bd.com'),
-                [application.email],
-                fail_silently=True
-            )
-        except Exception as e:
-            logger.error(f"Failed to send status update email: {str(e)}")
