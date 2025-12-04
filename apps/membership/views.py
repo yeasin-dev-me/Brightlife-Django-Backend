@@ -1,17 +1,145 @@
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action, api_view, parser_classes
+from rest_framework.decorators import action, api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.views import APIView
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 import logging
 
 from .models import MembershipApplication, Nominee, MedicalRecord
 from .serializers import (
     MembershipApplicationSerializer,
     MembershipApplicationListSerializer,
+    MemberLoginSerializer,
+    MemberProfileSerializer,
 )
 
 logger = logging.getLogger('membership')
+
+
+class MemberLoginView(APIView):
+    """
+    Member Login API
+    POST /api/v1/membership/login/
+    
+    Authenticates members using Proposal Number + Birth Year
+    Returns member profile data on success
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        """
+        Authenticate member and return profile
+        
+        Request Body:
+        {
+            "proposalNo": "BL-202512-0001",
+            "birthYear": 1990
+        }
+        
+        Response (Success):
+        {
+            "success": true,
+            "message": "Login successful",
+            "data": {
+                "member": { ... member profile ... },
+                "token": "..." (optional, for session)
+            }
+        }
+        
+        Response (Failure):
+        {
+            "success": false,
+            "message": "Invalid credentials or member not found"
+        }
+        """
+        try:
+            # Validate input
+            serializer = MemberLoginSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response({
+                    'success': False,
+                    'message': 'Invalid input',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            proposal_no = serializer.validated_data['proposalNo']
+            birth_year = serializer.validated_data['birthYear']
+            
+            logger.info(f"Member login attempt: {proposal_no}")
+            
+            # Find member by proposal number (check both fields)
+            member = MembershipApplication.objects.filter(
+                Q(proposal_no__iexact=proposal_no) | 
+                Q(proposal_number__iexact=proposal_no)
+            ).first()
+            
+            if not member:
+                logger.warning(f"Login failed: Member not found - {proposal_no}")
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials. Member not found.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Verify birth year from dob or date_of_birth
+            member_dob = member.dob or member.date_of_birth
+            if not member_dob:
+                logger.warning(f"Login failed: No DOB on record - {proposal_no}")
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials. Birth year mismatch.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            if member_dob.year != birth_year:
+                logger.warning(f"Login failed: Birth year mismatch - {proposal_no}")
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials. Birth year mismatch.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check membership status
+            status_message = None
+            if member.status == 'pending':
+                status_message = 'Your application is pending review.'
+            elif member.status == 'under_review':
+                status_message = 'Your application is under review.'
+            elif member.status == 'rejected':
+                return Response({
+                    'success': False,
+                    'message': 'Your membership application was rejected. Please contact support.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            elif member.status == 'expired':
+                status_message = 'Your membership has expired. Please renew.'
+            
+            # Check validity date
+            if member.valid_until and member.valid_until < timezone.now().date():
+                status_message = 'Your membership has expired. Please renew.'
+            
+            # Serialize member profile
+            profile_serializer = MemberProfileSerializer(member)
+            
+            logger.info(f"Member login successful: {proposal_no} - {member.name_english}")
+            
+            response_data = {
+                'success': True,
+                'message': 'Login successful',
+                'data': {
+                    'member': profile_serializer.data,
+                    # Add status message if applicable
+                    'statusMessage': status_message,
+                }
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Member login error: {str(e)}")
+            return Response({
+                'success': False,
+                'message': 'Server error. Please try again later.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class MembershipApplicationViewSet(viewsets.ModelViewSet):

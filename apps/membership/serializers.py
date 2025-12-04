@@ -4,6 +4,53 @@ from django.core.validators import FileExtensionValidator
 from decimal import Decimal
 
 
+class MemberLoginSerializer(serializers.Serializer):
+    """
+    Serializer for member login authentication
+    Uses Proposal Number + Birth Year for validation
+    """
+    proposalNo = serializers.CharField(
+        max_length=50,
+        required=True,
+        help_text="Member's Proposal Number (e.g., BL-202512-0001 or BLBD-1234567890)"
+    )
+    birthYear = serializers.IntegerField(
+        required=True,
+        min_value=1900,
+        max_value=2100,
+        help_text="Member's birth year (4 digits, e.g., 1990)"
+    )
+    
+    def validate_proposalNo(self, value):
+        """Normalize proposal number"""
+        return value.strip().upper()
+    
+    def validate_birthYear(self, value):
+        """Validate birth year is reasonable"""
+        from datetime import datetime
+        current_year = datetime.now().year
+        if value > current_year:
+            raise serializers.ValidationError("Birth year cannot be in the future")
+        if value < 1900:
+            raise serializers.ValidationError("Birth year must be after 1900")
+        return value
+
+
+class MemberProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for returning member profile data after login
+    """
+    class Meta:
+        model = MembershipApplication
+        fields = [
+            'id', 'proposal_no', 'proposal_number', 'name_english', 'name_bangla',
+            'email', 'mobile', 'membership_type', 'status', 'valid_until',
+            'dob', 'gender', 'blood_group', 'present_address',
+            'created_at', 'photo'
+        ]
+        read_only_fields = fields
+
+
 class NomineeSerializer(serializers.ModelSerializer):
     """
     Serializer for Nominee model matching frontend structure

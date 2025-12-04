@@ -19,10 +19,15 @@ class MembershipApplication(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending Review'),
         ('approved', 'Approved'),
+        ('active', 'Active'),
         ('rejected', 'Rejected'),
         ('under_review', 'Under Review'),
+        ('expired', 'Expired'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Membership validity (for approved members)
+    valid_until = models.DateField(null=True, blank=True, help_text='Membership validity date')
 
     # Step 1: Personal Information
     MEMBERSHIP_TYPE_CHOICES = [
@@ -180,7 +185,9 @@ class MembershipApplication(models.Model):
             models.Index(fields=['-created_at']),
             models.Index(fields=['status']),
             models.Index(fields=['proposal_number']),
+            models.Index(fields=['proposal_no']),
             models.Index(fields=['nid_number']),
+            models.Index(fields=['dob']),
         ]
 
     def save(self, *args, **kwargs):
