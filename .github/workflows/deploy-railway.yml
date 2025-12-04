@@ -1,9 +1,10 @@
 name: Deploy to Railway
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  # Disabled - Using VPS deployment instead
+  # push:
+  #   branches: [ main ]
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   deploy:
