@@ -1,6 +1,7 @@
 import os
 
 from django.core.exceptions import ValidationError
+
 from PIL import Image
 
 
