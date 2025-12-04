@@ -5,17 +5,11 @@ from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import (
-    action,
-    api_view,
-    parser_classes,
-    permission_classes,
-)
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import MedicalRecord, MembershipApplication, Nominee
+from .models import MembershipApplication
 from .serializers import (
     MemberLoginSerializer,
     MemberProfileSerializer,
@@ -201,9 +195,9 @@ class MembershipApplicationViewSet(viewsets.ModelViewSet):
         """
         try:
             # Log incoming request data
-            logger.info(f"Received membership application submission")
-            logger.info(f"Request data keys: {list(request.data.keys())}")
-            logger.info(f"Request FILES keys: {list(request.FILES.keys())}")
+            logger.info("Received membership application submission")
+            logger.info("Request data keys: %s", list(request.data.keys()))
+            logger.info("Request FILES keys: %s", list(request.FILES.keys()))
             # Parse nominees from FormData array format
             nominees_data = []
             i = 0

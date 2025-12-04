@@ -1,49 +1,42 @@
 from datetime import date
-from decimal import Decimal
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import MembershipApplication, Nominee
+from .models import MembershipApplication
 
 
 class MembershipApplicationModelTest(TestCase):
     """Test membership application model"""
 
     def setUp(self):
-        self.photo = SimpleUploadedFile(
-            "photo.jpg", b"file_content", content_type="image/jpeg"
-        )
-        self.age_proof = SimpleUploadedFile(
-            "age_proof.pdf", b"file_content", content_type="application/pdf"
-        )
-
         self.application = MembershipApplication.objects.create(
             membership_type="individual",
             first_name="John",
             last_name="Doe",
+            name_english="John Doe",
             date_of_birth=date(1990, 1, 1),
+            dob=date(1990, 1, 1),
             gender="male",
             marital_status="single",
             mobile_number="01712345678",
+            mobile="01712345678",
             email="john.doe@example.com",
             emergency_contact_name="Jane Doe",
             emergency_contact_number="01798765432",
             nid_number="1234567890",
-            occupation="Engineer",
+            occupation="service",
             father_name="Father Name",
             mother_name="Mother Name",
             present_address="123 Main St",
             permanent_address="123 Main St",
-            weight=Decimal("70.5"),
-            height=Decimal("175.0"),
+            weight="70.5",
+            height="5'9\"",
             blood_group="O+",
             terms_accepted=True,
-            photo=self.photo,
-            age_proof=self.age_proof,
+            accept_terms=True,
         )
 
     def test_proposal_number_generation(self):
@@ -66,50 +59,27 @@ class MembershipAPITest(APITestCase):
 
     def test_create_application(self):
         """Test creating new membership application"""
-        photo = SimpleUploadedFile(
-            "photo.jpg", b"file_content", content_type="image/jpeg"
-        )
-        age_proof = SimpleUploadedFile(
-            "age_proof.pdf", b"file_content", content_type="application/pdf"
-        )
-        nominee_id = SimpleUploadedFile(
-            "nominee_id.pdf", b"file_content", content_type="application/pdf"
-        )
-
         data = {
-            "membership_type": "individual",
-            "first_name": "Test",
-            "last_name": "User",
-            "date_of_birth": "1995-05-15",
+            "membershipType": "individual",
+            "nameEnglish": "Test User",
+            "fatherName": "Father",
+            "motherName": "Mother",
+            "dob": "1995-05-15",
             "gender": "male",
-            "marital_status": "single",
-            "mobile_number": "01712345678",
+            "maritalStatus": "unmarried",
+            "mobile": "01712345678",
             "email": "test@example.com",
-            "emergency_contact_name": "Emergency Contact",
-            "emergency_contact_number": "01798765432",
-            "nid_number": "9876543210",
-            "occupation": "Developer",
-            "father_name": "Father",
-            "mother_name": "Mother",
-            "present_address": "Present Address",
-            "permanent_address": "Permanent Address",
-            "weight": "75.0",
-            "height": "180.0",
-            "blood_group": "A+",
-            "terms_accepted": True,
-            "photo": photo,
-            "age_proof": age_proof,
-            "nominees": [
-                {
-                    "name": "Nominee 1",
-                    "relationship": "spouse",
-                    "mobile_number": "01712345679",
-                    "nid_number": "1111111111",
-                    "date_of_birth": "1996-06-20",
-                    "share_percentage": "100",
-                    "id_proof": nominee_id,
-                }
-            ],
+            "presentAddress": "Present Address",
+            "permanentAddress": "Permanent Address",
+            "occupation": "service",
+            "bloodGroup": "A+",
+            "weight": "75",
+            "height": "5'10\"",
+            "acceptTerms": "true",
+            "nominees[0]name": "Nominee 1",
+            "nominees[0]relation": "wife",
+            "nominees[0]share": "100",
+            "nominees[0]age": "28",
         }
 
         response = self.client.post(
@@ -118,55 +88,32 @@ class MembershipAPITest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response.data["success"])
-        self.assertIn("proposal_number", response.data["data"])
+        self.assertIn("proposal_no", response.data["data"])
 
     def test_invalid_share_percentage(self):
         """Test validation of nominee share percentages"""
         # Test data with shares not totaling 100%
-        photo = SimpleUploadedFile(
-            "photo.jpg", b"file_content", content_type="image/jpeg"
-        )
-        age_proof = SimpleUploadedFile(
-            "age_proof.pdf", b"file_content", content_type="application/pdf"
-        )
-        nominee_id = SimpleUploadedFile(
-            "nominee_id.pdf", b"file_content", content_type="application/pdf"
-        )
-
         data = {
-            "membership_type": "individual",
-            "first_name": "Test",
-            "last_name": "User",
-            "date_of_birth": "1995-05-15",
+            "membershipType": "individual",
+            "nameEnglish": "Test User",
+            "fatherName": "Father",
+            "motherName": "Mother",
+            "dob": "1995-05-15",
             "gender": "male",
-            "marital_status": "single",
-            "mobile_number": "01712345678",
+            "maritalStatus": "unmarried",
+            "mobile": "01712345679",
             "email": "test2@example.com",
-            "emergency_contact_name": "Emergency Contact",
-            "emergency_contact_number": "01798765432",
-            "nid_number": "9876543211",
-            "occupation": "Developer",
-            "father_name": "Father",
-            "mother_name": "Mother",
-            "present_address": "Present Address",
-            "permanent_address": "Permanent Address",
-            "weight": "75.0",
-            "height": "180.0",
-            "blood_group": "A+",
-            "terms_accepted": True,
-            "photo": photo,
-            "age_proof": age_proof,
-            "nominees": [
-                {
-                    "name": "Nominee 1",
-                    "relationship": "spouse",
-                    "mobile_number": "01712345679",
-                    "nid_number": "1111111112",
-                    "date_of_birth": "1996-06-20",
-                    "share_percentage": "50",
-                    "id_proof": nominee_id,
-                }
-            ],
+            "presentAddress": "Present Address",
+            "permanentAddress": "Permanent Address",
+            "occupation": "business",
+            "bloodGroup": "A+",
+            "weight": "75",
+            "height": "5'10\"",
+            "acceptTerms": "true",
+            "nominees[0]name": "Nominee 1",
+            "nominees[0]relation": "wife",
+            "nominees[0]share": "50",
+            "nominees[0]age": "28",
         }
 
         response = self.client.post(

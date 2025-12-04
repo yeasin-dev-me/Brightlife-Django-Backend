@@ -9,9 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import ApplicationStatusHistory, MembershipApplication, Nominee
+from .models import ApplicationStatusHistory, MembershipApplication
 from .serializers import (
-    ApplicationStatusSerializer,
     MembershipApplicationListSerializer,
     MembershipApplicationSerializer,
 )

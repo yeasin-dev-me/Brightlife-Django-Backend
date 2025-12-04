@@ -38,9 +38,9 @@ class PaymentProofSubmitView(APIView):
     def post(self, request):
         """Handle payment proof submission"""
         try:
-            logger.info(f"Received payment proof submission")
-            logger.debug(f"Request data keys: {list(request.data.keys())}")
-            logger.debug(f"Request FILES keys: {list(request.FILES.keys())}")
+            logger.info("Received payment proof submission")
+            logger.debug("Request data keys: %s", list(request.data.keys()))
+            logger.debug("Request FILES keys: %s", list(request.FILES.keys()))
 
             # Create serializer with request data
             serializer = PaymentProofSerializer(data=request.data)
@@ -86,7 +86,11 @@ class PaymentProofSubmitView(APIView):
                         "email": "info@brightlife-bd.com",
                         "website": "www.brightlife-bd.com",
                     },
-                    "verificationMessage": "This is a computer-generated receipt for payment proof submission. Your payment will be verified within 24-48 hours. Please keep this receipt for your records.",
+                    "verificationMessage": (
+                        "This is a computer-generated receipt for payment proof "
+                        "submission. Your payment will be verified within 24-48 hours. "
+                        "Please keep this receipt for your records."
+                    ),
                 }
 
                 return Response(

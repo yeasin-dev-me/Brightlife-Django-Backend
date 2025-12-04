@@ -1,15 +1,12 @@
 from decimal import Decimal
 
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
-
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import PaymentProof
 
 
-class PaymentProofModelTest(TestCase):
+class PaymentProofModelTest(APITestCase):
     """Test PaymentProof model"""
 
     def setUp(self):
