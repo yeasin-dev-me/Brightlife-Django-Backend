@@ -98,11 +98,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 import environ
 env = environ.Env()
 
-# Use DATABASE_URL if provided (Docker), otherwise use individual settings (.env)
+# Read .env file for environ (check if file exists first)
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    environ.Env.read_env(env_file)
+
+# Use DATABASE_URL if provided, otherwise use individual settings
 database_url = config('DATABASE_URL', default=None)
 if database_url:
     DATABASES = {
-        'default': env.db_url('DATABASE_URL')
+        'default': env.db_url('DATABASE_URL', default=database_url)
     }
 else:
     DATABASES = {
