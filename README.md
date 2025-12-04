@@ -84,11 +84,18 @@ API will be available at `http://localhost:8000/api/v1/`
 
 ## 🚀 Deployment
 
-This project includes automated CI/CD pipelines for multiple deployment platforms.
+This project supports multiple deployment methods.
 
-### Quick Deploy
+### Quick Deploy Options
 
-**Railway** (Recommended):
+**1. SSH to Your Own Server** (Full Control):
+```powershell
+# See detailed guide in DEPLOYMENT_SSH.md
+.\deploy.ps1
+```
+📖 **Complete SSH deployment guide**: [DEPLOYMENT_SSH.md](./DEPLOYMENT_SSH.md)
+
+**2. Railway** (Easiest):
 ```bash
 npm install -g @railway/cli
 railway login
@@ -96,18 +103,18 @@ railway init
 railway up
 ```
 
-**Heroku**:
+**3. Heroku**:
 ```bash
 heroku create brightlife-backend
 git push heroku main
 ```
 
-**Docker**:
+**4. Docker Compose**:
 ```bash
 docker-compose up --build
 ```
 
-📖 **Full deployment guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+📖 **Platform-specific guides**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for Railway, Heroku, Azure instructions.
 
 ### CI/CD Workflows
 
