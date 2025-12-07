@@ -92,10 +92,10 @@ cd /var/www/brightlife
 ### Clone Repository:
 ```bash
 # Option 1: HTTPS (will prompt for credentials)
-git clone https://github.com/ya-shuvo30/Brightlife-Django-Backend.git .
+git clone https://github.com/yeasin-dev-me/Brightlife-Django-Backend.git .
 
 # Option 2: SSH (requires GitHub SSH key setup)
-git clone git@github.com:ya-shuvo30/Brightlife-Django-Backend.git .
+git clone git@github.com:yeasin-dev-me/Brightlife-Django-Backend.git .
 ```
 
 ### Setup Python Virtual Environment:
@@ -120,7 +120,7 @@ ALLOWED_HOSTS=your-domain.com,www.your-domain.com,your-server-ip
 
 DATABASE_URL=postgres://brightlife_user:your-secure-password@localhost:5432/brightlife_db
 
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io,https://your-domain.com
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io,https://your-domain.com
 
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
@@ -233,7 +233,7 @@ server {
         proxy_pass http://unix:/run/gunicorn.sock;
         
         # CORS headers
-        add_header 'Access-Control-Allow-Origin' 'https://ya-shuvo30.github.io' always;
+        add_header 'Access-Control-Allow-Origin' 'https://yeasin-dev-me.github.io' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
         add_header 'Access-Control-Allow-Credentials' 'true' always;

@@ -14,7 +14,7 @@ APP_DIR="/var/www/brightlife"
 DB_NAME="brightlife_db"
 DB_USER="brightlife_user"
 DB_PASSWORD="BrightLife2025!Secure"
-GITHUB_REPO="https://github.com/ya-shuvo30/Brightlife-Django-Backend.git"
+GITHUB_REPO="https://github.com/yeasin-dev-me/Brightlife-Django-Backend.git"
 
 echo ""
 echo "Step 1/14: Updating system packages..."
@@ -79,7 +79,7 @@ SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secr
 DEBUG=False
 ALLOWED_HOSTS=162.0.233.161,localhost,127.0.0.1
 DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io,http://localhost:5173
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io,http://localhost:5173
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
 EOF

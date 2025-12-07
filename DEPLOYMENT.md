@@ -14,7 +14,7 @@ Runs on every push and pull request to `main` and `develop` branches.
 
 **Status Badge:** Add to README.md
 ```markdown
-![Django CI](https://github.com/ya-shuvo30/Brightlife-Django-Backend/workflows/Django%20CI%2FCD%20Pipeline/badge.svg)
+![Django CI](https://github.com/yeasin-dev-me/Brightlife-Django-Backend/workflows/Django%20CI%2FCD%20Pipeline/badge.svg)
 ```
 
 ### 2. **Railway Deployment** (`.github/workflows/deploy-railway.yml`)
@@ -63,7 +63,7 @@ railway add
 railway variables set SECRET_KEY="your-production-secret-key-here"
 railway variables set DEBUG="False"
 railway variables set ALLOWED_HOSTS="your-app.railway.app"
-railway variables set CORS_ALLOWED_ORIGINS="https://ya-shuvo30.github.io"
+railway variables set CORS_ALLOWED_ORIGINS="https://yeasin-dev-me.github.io"
 ```
 
 #### Step 5: Deploy
@@ -110,7 +110,7 @@ heroku addons:create heroku-postgresql:mini
 heroku config:set SECRET_KEY="your-secret-key"
 heroku config:set DEBUG="False"
 heroku config:set ALLOWED_HOSTS="brightlife-backend.herokuapp.com"
-heroku config:set CORS_ALLOWED_ORIGINS="https://ya-shuvo30.github.io"
+heroku config:set CORS_ALLOWED_ORIGINS="https://yeasin-dev-me.github.io"
 ```
 
 #### Step 5: Deploy
@@ -160,7 +160,7 @@ docker run -d \
 
 ## 🔐 GitHub Secrets Configuration
 
-Go to: `https://github.com/ya-shuvo30/Brightlife-Django-Backend/settings/secrets/actions`
+Go to: `https://github.com/yeasin-dev-me/Brightlife-Django-Backend/settings/secrets/actions`
 
 ### Required Secrets:
 
@@ -191,7 +191,7 @@ Go to: `https://github.com/ya-shuvo30/Brightlife-Django-Backend/settings/secrets
 ### Check CI Status
 ```bash
 # View workflow runs
-gh run list --repo ya-shuvo30/Brightlife-Django-Backend
+gh run list --repo yeasin-dev-me/Brightlife-Django-Backend
 
 # View specific run
 gh run view <run-id>
@@ -215,7 +215,7 @@ VITE_USE_MOCK_API=false
 ### 2. Configure Production CORS
 Update backend `.env` or Railway variables:
 ```env
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io
 ```
 
 ### 3. Create Superuser
@@ -287,8 +287,8 @@ heroku run python manage.py collectstatic --noinput
 
 ## 🔗 Useful Links
 
-- **Repository**: https://github.com/ya-shuvo30/Brightlife-Django-Backend
-- **Frontend**: https://github.com/ya-shuvo30/brightlife-typescript-app
+- **Repository**: https://github.com/yeasin-dev-me/Brightlife-Django-Backend
+- **Frontend**: https://github.com/yeasin-dev-me/brightlife-typescript-app
 - **Railway Docs**: https://docs.railway.app/
 - **Heroku Docs**: https://devcenter.heroku.com/
 - **Django Deployment**: https://docs.djangoproject.com/en/stable/howto/deployment/

@@ -43,7 +43,7 @@ cd /var/www/brightlife
 # 5. Clone Repository
 echo ""
 echo "📥 Step 5/12: Cloning repository from GitHub..."
-git clone https://github.com/ya-shuvo30/Brightlife-Django-Backend.git .
+git clone https://github.com/yeasin-dev-me/Brightlife-Django-Backend.git .
 echo "✅ Repository cloned!"
 
 # 6. Setup Virtual Environment
@@ -66,7 +66,7 @@ ALLOWED_HOSTS=162.0.233.161,brightlife-bd.com,www.brightlife-bd.com
 
 DATABASE_URL=postgres://brightlife_user:BrightLife2025!Secure@localhost:5432/brightlife_db
 
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io,http://localhost:5173
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io,http://localhost:5173
 
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440

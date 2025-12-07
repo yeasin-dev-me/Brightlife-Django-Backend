@@ -108,7 +108,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',   # React dev server
     'http://localhost:5173',   # Vite dev server
-    # Production: 'https://ya-shuvo30.github.io'
+    # Production: 'https://yeasin-dev-me.github.io'
 ]
 CORS_ALLOW_CREDENTIALS = True
 ```
@@ -199,7 +199,7 @@ Response: { "access": "new_jwt..." }
 ```
 
 ### CORS Considerations
-- Frontend runs on GitHub Pages: `https://ya-shuvo30.github.io`
+- Frontend runs on GitHub Pages: `https://yeasin-dev-me.github.io`
 - Development: `http://localhost:5173` (Vite)
 - **Update CORS origins** in `.env` for production deployment
 
@@ -207,7 +207,7 @@ Response: { "access": "new_jwt..." }
 
 ### Current State
 - Backend code exists in local directory: `c:\Drive_B\Bright_App\brightlife-django-backend`
-- **No GitHub repository created yet** for backend (frontend repo: `ya-shuvo30/brightlife-typescript-app`)
+- **No GitHub repository created yet** for backend (frontend repo: `yeasin-dev-me/brightlife-typescript-app`)
 
 ### Recommended Actions
 
@@ -217,7 +217,7 @@ cd brightlife-django-backend
 git init
 git add .
 git commit -m "Initial Django REST API setup"
-git remote add origin https://github.com/ya-shuvo30/brightlife-django-backend.git
+git remote add origin https://github.com/yeasin-dev-me/brightlife-django-backend.git
 git push -u origin main
 ```
 
@@ -285,7 +285,7 @@ SECRET_KEY=<generate-random-key>
 DEBUG=False
 ALLOWED_HOSTS=api.brightlife-bd.com,brightlife-backend.railway.app
 DATABASE_URL=postgres://user:pass@host:5432/db  # Railway auto-sets this
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
 ```

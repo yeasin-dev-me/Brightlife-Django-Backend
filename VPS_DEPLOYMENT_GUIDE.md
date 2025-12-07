@@ -18,7 +18,7 @@ Once connected to VPS, run these commands:
 
 ```bash
 # Download the deployment script
-curl -o vps-deploy.sh https://raw.githubusercontent.com/ya-shuvo30/Brightlife-Django-Backend/main/vps-deploy.sh
+curl -o vps-deploy.sh https://raw.githubusercontent.com/yeasin-dev-me/Brightlife-Django-Backend/main/vps-deploy.sh
 
 # Make it executable
 chmod +x vps-deploy.sh
@@ -73,7 +73,7 @@ GRANT ALL PRIVILEGES ON DATABASE brightlife_db TO brightlife_user;
 ```bash
 mkdir -p /var/www/brightlife
 cd /var/www/brightlife
-git clone https://github.com/ya-shuvo30/Brightlife-Django-Backend.git .
+git clone https://github.com/yeasin-dev-me/Brightlife-Django-Backend.git .
 ```
 
 #### E. Setup Virtual Environment
@@ -98,7 +98,7 @@ ALLOWED_HOSTS=162.0.233.161,brightlife-bd.com,www.brightlife-bd.com
 
 DATABASE_URL=postgres://brightlife_user:BrightLife2025!Secure@localhost:5432/brightlife_db
 
-CORS_ALLOWED_ORIGINS=https://ya-shuvo30.github.io
+CORS_ALLOWED_ORIGINS=https://yeasin-dev-me.github.io
 
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
@@ -192,7 +192,7 @@ server {
         include proxy_params;
         proxy_pass http://unix:/run/gunicorn.sock;
         
-        add_header 'Access-Control-Allow-Origin' 'https://ya-shuvo30.github.io' always;
+        add_header 'Access-Control-Allow-Origin' 'https://yeasin-dev-me.github.io' always;
         add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
         add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
         add_header 'Access-Control-Allow-Credentials' 'true' always;
