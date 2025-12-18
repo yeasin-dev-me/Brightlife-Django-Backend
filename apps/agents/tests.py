@@ -20,13 +20,6 @@ class AgentApplicationAPITests(APITestCase):
         url = reverse("agents:agent-application-list")
         payload = {
             "applicantRole": "FO",
-            "agentId": "AG-1001",
-            "fmName": "Field Manager",
-            "roleCode": "FO-001",
-            "dgmName": "Deputy GM",
-            "dgmCode": "DGM-01",
-            "gmName": "General Manager",
-            "gmCode": "GM-01",
             "fullName": "Jane Agent",
             "email": "agent@example.com",
             "phone": "+880123456789",

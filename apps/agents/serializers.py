@@ -47,6 +47,43 @@ class AgentApplicationSerializer(serializers.ModelSerializer):
             "confirm_password",
         ]
         read_only_fields = ["status", "submitted_at", "updated_at"]
+        extra_kwargs = {
+            "agent_id": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "fm_name": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "role_code": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "dgm_name": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "dgm_code": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "gm_name": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+            "gm_code": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+            },
+        }
 
     def validate(self, attrs):
         password = attrs.get("password")

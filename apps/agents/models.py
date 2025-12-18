@@ -27,15 +27,15 @@ class AgentApplication(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    agent_id = models.CharField(max_length=50, unique=True)
+    agent_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     applicant_role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
-    fm_name = models.CharField(max_length=200)
-    role_code = models.CharField(max_length=50)
-    dgm_name = models.CharField(max_length=200)
-    dgm_code = models.CharField(max_length=50)
-    gm_name = models.CharField(max_length=200)
-    gm_code = models.CharField(max_length=50)
+    fm_name = models.CharField(max_length=200, blank=True, null=True)
+    role_code = models.CharField(max_length=50, blank=True, null=True)
+    dgm_name = models.CharField(max_length=200, blank=True, null=True)
+    dgm_code = models.CharField(max_length=50, blank=True, null=True)
+    gm_name = models.CharField(max_length=200, blank=True, null=True)
+    gm_code = models.CharField(max_length=50, blank=True, null=True)
 
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
