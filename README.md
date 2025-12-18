@@ -86,6 +86,19 @@ This backend serves the BrightLife membership platform, handling user registrati
 | POST | https://api.brightlifebd.com/api/v1/payment/admin/payment-proofs/{id}/verify/ | Verify payment |
 | POST | https://api.brightlifebd.com/api/v1/payment/admin/payment-proofs/{id}/reject/ | Reject payment |
 
+### Agent Onboarding API
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | https://api.brightlifebd.com/api/v1/agents/applications/ | Submit agent onboarding form (public, throttled) |
+| GET | https://api.brightlifebd.com/api/v1/agents/applications/ | List applications (staff only) |
+| GET | https://api.brightlifebd.com/api/v1/agents/applications/{id}/ | Review application detail (staff only) |
+| PATCH | https://api.brightlifebd.com/api/v1/agents/applications/{id}/ | Update status, notes, reviewer metadata (staff only) |
+
+### Agent Onboarding Security & Observability
+- **Authorization Rules**: `POST` submissions stay open to prospective agents, while `list`, `retrieve`, and moderation actions inherit `IsAdminUser`, ensuring only staff can access or mutate stored records.
+- **API Hardening**: Submissions are rate-limited through DRF's scoped throttling (tuned via `AGENT_ONBOARDING_THROTTLE`) and every payload must confirm `agreeTerms`, sanitize phone numbers, and passes serializer-level validation.
+- **Observability**: The `agents` logger captures successful submissions, validation failures, request IPs, and user agents so operations teams can trend onboarding volume and detect abuse.
+
 ### API Documentation
 | Description | URL |
 |-------------|-----|
@@ -229,6 +242,56 @@ sudo systemctl restart gunicorn
    ```
 
 API will be available at `http://localhost:8000/api/v1/`
+
+### PostgreSQL via Docker Compose (Preferred for Local Dev)
+
+```bash
+# Start only the database container
+docker compose up -d db
+
+# Apply migrations against the running container
+C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py migrate
+
+# (Optional) create a superuser for admin logins
+C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py createsuperuser
+
+# Run the API once the DB is healthy
+C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py runserver
+```
+
+Your `.env` can either keep `DATABASE_URL` or use the discrete `DB_*` variables. When using Docker, set `DB_HOST=db` so Django connects to the containerized Postgres instance defined in [docker-compose.yml](docker-compose.yml).
+
+#### Smoke Test the Connection
+
+```bash
+C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py dbshell
+```
+
+If `dbshell` opens without errors, the application can reach PostgreSQL.
+
+### Deployment Readiness Checklist
+
+1. **Lock environment variables**: update `.env`/platform secrets with `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and either `DATABASE_URL` or all `DB_*` values (see [.env.example](.env.example)).
+2. **Run framework checks**:
+   ```bash
+   C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py check --deploy
+   ```
+3. **Collect assets & migrate**:
+   ```bash
+   C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py collectstatic --noinput
+   C:/Drive_B/Bright_App/.venv/Scripts/python.exe manage.py migrate
+   ```
+4. **Create admin credentials**: `python manage.py createsuperuser` (run via SSH/CLI on the target environment).
+5. **Smoke test with Gunicorn/Docker**:
+   ```bash
+   # Gunicorn locally
+   gunicorn --bind 0.0.0.0:8000 --workers 3 config.wsgi:application
+
+   # Or Docker image
+   docker build -t brightlife-backend:latest .
+   docker run --rm -p 8000:8000 --env-file .env brightlife-backend:latest
+   ```
+6. **Review deployment docs**: [DEPLOYMENT.md](DEPLOYMENT.md) for CI/CD options or [DEPLOYMENT_SSH.md](DEPLOYMENT_SSH.md) for manual VPS steps.
 
 ---
 

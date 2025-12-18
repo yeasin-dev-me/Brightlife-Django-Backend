@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.membership",
     "apps.payment",
+    "apps.agents",
 ]
 
 MIDDLEWARE = [
@@ -197,6 +198,15 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
         "rest_framework.parsers.FormParser",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "agent-onboarding": config(
+            "AGENT_ONBOARDING_THROTTLE",
+            default="5/hour",
+        ),
+    },
 }
 
 # =============================================================================
@@ -298,6 +308,11 @@ LOGGING = {
         "membership": {
             "handlers": ["console"],
             "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "agents": {
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
         "django.request": {
