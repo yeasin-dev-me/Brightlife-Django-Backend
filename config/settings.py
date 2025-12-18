@@ -32,6 +32,30 @@ SECRET_KEY = config(
 DEBUG = config("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+AGENT_ONBOARDING_THROTTLE = config(
+    "AGENT_ONBOARDING_THROTTLE",
+    default="50/hour",
+)
+AGENT_ONBOARDING_THROTTLE_BURST = config(
+    "AGENT_ONBOARDING_THROTTLE_BURST",
+    default="5/min",
+)
+AGENT_ONBOARDING_CAPTCHA_PROVIDER = config(
+    "AGENT_ONBOARDING_CAPTCHA_PROVIDER",
+    default="",
+).strip().lower()
+AGENT_ONBOARDING_CAPTCHA_SECRET = config(
+    "AGENT_ONBOARDING_CAPTCHA_SECRET",
+    default="",
+)
+AGENT_ONBOARDING_CAPTCHA_SCORE_THRESHOLD = config(
+    "AGENT_ONBOARDING_CAPTCHA_SCORE_THRESHOLD",
+    default=0.5,
+    cast=float,
+)
 
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
@@ -202,10 +226,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.ScopedRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "agent-onboarding": config(
-            "AGENT_ONBOARDING_THROTTLE",
-            default="5/hour",
-        ),
+        "agent-onboarding": AGENT_ONBOARDING_THROTTLE,
+        "agent-onboarding-burst": AGENT_ONBOARDING_THROTTLE_BURST,
     },
 }
 

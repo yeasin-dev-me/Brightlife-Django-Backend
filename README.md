@@ -96,8 +96,43 @@ This backend serves the BrightLife membership platform, handling user registrati
 
 ### Agent Onboarding Security & Observability
 - **Authorization Rules**: `POST` submissions stay open to prospective agents, while `list`, `retrieve`, and moderation actions inherit `IsAdminUser`, ensuring only staff can access or mutate stored records.
-- **API Hardening**: Submissions are rate-limited through DRF's scoped throttling (tuned via `AGENT_ONBOARDING_THROTTLE`) and every payload must confirm `agreeTerms`, sanitize phone numbers, and passes serializer-level validation.
+- **API Hardening**: Submissions are rate-limited through layered throttles (hourly + 5/min bursts configurable via `.env`), every payload must confirm `agreeTerms`, sanitize phone numbers, and passes serializer-level validation.
 - **Observability**: The `agents` logger captures successful submissions, validation failures, request IPs, and user agents so operations teams can trend onboarding volume and detect abuse.
+
+#### Agent Onboarding Hardening (Rate Limits + CAPTCHA)
+1. **Update environment variables** (local + server):
+   ```env
+   AGENT_ONBOARDING_THROTTLE=50/hour
+   AGENT_ONBOARDING_THROTTLE_BURST=5/min
+   # Optional CAPTCHA (pick one provider)
+   AGENT_ONBOARDING_CAPTCHA_PROVIDER=recaptcha
+   AGENT_ONBOARDING_CAPTCHA_SECRET=<server-side-secret>
+   AGENT_ONBOARDING_CAPTCHA_SCORE_THRESHOLD=0.5
+   ```
+2. **Reload the backend after editing `.env`:**
+   ```bash
+   # VPS / Gunicorn deployment
+   ssh root@162.0.233.161
+   cd /var/www/brightlife
+   source venv/bin/activate
+   sudo systemctl restart gunicorn
+   sudo systemctl restart nginx
+
+   # Docker (local or CI preview)
+   docker compose up -d --build web
+   ```
+3. **Nginx edge throttling** (stops obvious bots before Django – add inside your site block):
+   ```nginx
+   limit_req_zone $binary_remote_addr zone=agent_onboarding:10m rate=1r/m; # ~60 req/hour/IP
+
+   location /api/v1/agents/applications/ {
+      limit_req zone=agent_onboarding burst=5 nodelay;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_pass http://unix:/run/gunicorn.sock;
+   }
+   ```
+   Adjust `rate`/`burst` to mirror the Django throttle (50/hour primary, 5/minute burst). Remember to `sudo nginx -t && sudo systemctl reload nginx` after editing.
 
 ### API Documentation
 | Description | URL |
