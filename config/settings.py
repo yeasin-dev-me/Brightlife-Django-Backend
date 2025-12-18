@@ -43,10 +43,14 @@ AGENT_ONBOARDING_THROTTLE_BURST = config(
     "AGENT_ONBOARDING_THROTTLE_BURST",
     default="5/min",
 )
-AGENT_ONBOARDING_CAPTCHA_PROVIDER = config(
-    "AGENT_ONBOARDING_CAPTCHA_PROVIDER",
-    default="",
-).strip().lower()
+AGENT_ONBOARDING_CAPTCHA_PROVIDER = (
+    config(
+        "AGENT_ONBOARDING_CAPTCHA_PROVIDER",
+        default="",
+    )
+    .strip()
+    .lower()
+)
 AGENT_ONBOARDING_CAPTCHA_SECRET = config(
     "AGENT_ONBOARDING_CAPTCHA_SECRET",
     default="",
