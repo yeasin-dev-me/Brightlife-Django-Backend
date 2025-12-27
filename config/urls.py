@@ -34,7 +34,7 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     # Root redirect to API Docs
-    path("", RedirectView.as_view(url_name="swagger-ui", permanent=False)),
+    path("", RedirectView.as_view(pattern_name="swagger-ui", permanent=False)),
     # Admin
     path("admin/", admin.site.urls),
     # JWT Authentication endpoints
